@@ -5,11 +5,13 @@ import getDayDate from "./getDayDate";
 
 function useCalendar(
   day: number,
-  setCalendar: Dispatch<SetStateAction<TCalendar | []>>
+  setCalendar: Dispatch<SetStateAction<TCalendar | []>>,
+  setLoading: Dispatch<SetStateAction<boolean>>
 ) {
   useEffect(() => {
+    setLoading(true);
     const newDay = getDayDate(day);
-    getCalendar(newDay, setCalendar);
+    getCalendar(newDay, setCalendar, setLoading);
   }, [day]);
 }
 

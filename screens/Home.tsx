@@ -1,4 +1,10 @@
-import { Text, Pressable, View, ScrollView } from "react-native";
+import {
+  Text,
+  Pressable,
+  View,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { pb } from "../lib/pocketbase";
 import { AppContext, IContextDefaultValue } from "../context";
@@ -16,13 +22,14 @@ const Home = ({ navigation }: any) => {
   const { calendar, setCalendar, dataToCreate } = useContext(
     AppContext
   ) as IContextDefaultValue;
+  const [loading, setLoading] = useState(false);
   const [day, setDay] = useState(0);
   const [createSurgeryModalIsOpen, setCreateSurgeryModalIsOpen] =
     useState(false);
   const [editSurgeryModal, setEditSurgeryModal] =
     useState<IEditSurgeryModalState>({ isOpen: false, data: undefined });
 
-  useCalendar(day, setCalendar);
+  useCalendar(day, setCalendar, setLoading);
   useSubscribeToSurgeries(day, setDay, calendar[1], calendar[0], setCalendar);
 
   useEffect(() => {
@@ -50,6 +57,7 @@ const Home = ({ navigation }: any) => {
     <ScrollView className="bg-neutral-50">
       <View className="flex-row justify-center items-center gap-x-10">
         <Pressable
+          disabled={loading}
           onPress={() => {
             if (day > 0) {
               setDay(day - 1);
@@ -64,6 +72,7 @@ const Home = ({ navigation }: any) => {
           <Text>{date}</Text>
         </View>
         <Pressable
+          disabled={loading}
           onPress={() => {
             if (day < 5) {
               setDay(day + 1);
@@ -89,12 +98,16 @@ const Home = ({ navigation }: any) => {
           />
         </>
       )}
-      {calendar.length > 0 && (
+      {calendar.length > 0 && !loading ? (
         <Calendar
           setEditSurgeryModal={setEditSurgeryModal}
           setCreateSurgeryModalIsOpen={setCreateSurgeryModalIsOpen}
           calendar={calendar as TCalendar}
         />
+      ) : (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" />
+        </View>
       )}
     </ScrollView>
   );

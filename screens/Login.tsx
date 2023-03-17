@@ -4,11 +4,13 @@ import { FieldValues, useForm } from "react-hook-form";
 import LoginInput from "../components/LoginInput";
 import { pb } from "../lib/pocketbase";
 import { AppContext, IContextDefaultValue } from "../context";
+import { AntDesign } from "@expo/vector-icons";
 import useVerifyAuth from "../hooks/useVerifyAuth";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackNavigationParamList } from "../types";
 
 const Login = ({ navigation }: any) => {
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginFailed, setLoginFailed] = useState(false);
   const {
@@ -20,13 +22,25 @@ const Login = ({ navigation }: any) => {
 
   useVerifyAuth(setLogged);
 
+  function togglePasswordVisibility() {
+    setShowPassword(!showPassword);
+  }
+
   async function onSubmit(data: FieldValues) {
     try {
-      await pb.collection("users").authWithPassword(data.email, data.password);
+      setLoading(true);
+      await pb
+        .collection("users")
+        .authWithPassword(data.email, data.password)
+        .catch((e) => {
+          setLoginFailed(true);
+          setLoading(false);
+        });
       pb.authStore.save(pb.authStore.token, pb.authStore.model);
       setLogged(true);
     } catch (e) {
       setLoginFailed(true);
+      setLoading(false);
       console.error(e);
     }
     setLoading(false);
@@ -46,17 +60,26 @@ const Login = ({ navigation }: any) => {
         placeholder="Seu e-mail"
       />
       <Text className="font-semibold text-base text-neutral-500">Senha</Text>
-      <LoginInput
-        control={control}
-        errors={errors}
-        loginFailed={loginFailed}
-        inputName="password"
-        placeholder="Sua senha"
-      />
+      <View className="flex-row">
+        <LoginInput
+          control={control}
+          errors={errors}
+          loginFailed={loginFailed}
+          inputName="password"
+          placeholder="Sua senha"
+          addStyle="flex-1"
+          showPassword={showPassword}
+        />
+        <AntDesign
+          name="eyeo"
+          size={24}
+          onPress={togglePasswordVisibility}
+          style={{ paddingVertical: 12, paddingHorizontal: 10 }}
+          color="gray"
+        />
+      </View>
       <Pressable
-        onPressIn={() => {
-          setLoading(true);
-        }}
+        disabled={loading}
         onPress={handleSubmit(onSubmit)}
         className="bg-sky-400 h-12 rounded-lg justify-center"
       >

@@ -11,6 +11,8 @@ interface Props {
   inputName: string;
   placeholder: string;
   loginFailed: boolean;
+  addStyle?: string;
+  showPassword?: boolean;
 }
 
 const LoginInput = ({
@@ -19,6 +21,8 @@ const LoginInput = ({
   inputName,
   placeholder,
   loginFailed,
+  addStyle,
+  showPassword = undefined,
 }: Props) => {
   return (
     <Controller
@@ -28,13 +32,16 @@ const LoginInput = ({
       render={({ field: { onChange, value } }) => {
         return (
           <TextInput
+            secureTextEntry={showPassword === false ? true : false}
             onChangeText={onChange}
             value={value}
             className={`border ${
-              errors.email || loginFailed
+              (errors.email && inputName === "email") ||
+              (errors.password && inputName === "password") ||
+              loginFailed
                 ? "border-red-400"
                 : "border-neutral-300"
-            } px-1 h-12 rounded-lg mb-2`}
+            } px-1 h-12 ${addStyle} rounded-lg mb-2`}
             placeholder={placeholder}
           />
         );

@@ -6,7 +6,8 @@ import useSurgeries from "./useSurgeries";
 
 async function getCalendar(
   date: Date,
-  setCalendar: Dispatch<SetStateAction<TCalendar | []>>
+  setCalendar: Dispatch<SetStateAction<TCalendar | []>>,
+  setLoading: Dispatch<SetStateAction<boolean>>
 ) {
   const limitHour = {
     initial: 6,
@@ -28,6 +29,7 @@ async function getCalendar(
     ] as TCalendar;
 
     setCalendar(completeCalendar);
+    setLoading(false);
   }
 }
 
