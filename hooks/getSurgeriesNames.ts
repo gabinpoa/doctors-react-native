@@ -9,7 +9,7 @@ function getSurgeriesNames() {
       .getFullList()
       .then((res) => {
         const surgeriesNames = res.map((record) => {
-          return { name: record.name };
+          return { name: record.name, id: record.id };
         });
         setSurgeriesNames(surgeriesNames);
       })

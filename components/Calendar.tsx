@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView, Alert } from "react-native";
 import React, { Dispatch, SetStateAction, useContext, useState } from "react";
 import {
   IEditSurgeryModalState,
@@ -10,6 +10,7 @@ import { AppContext, IContextDefaultValue } from "../context";
 import getSurgeryHeight from "../hooks/getSurgeryHeight";
 import pbDateStringToDate from "../hooks/pbDateStringToDate";
 import { getRandomColor } from "../lib/colors";
+import { pb } from "../lib/pocketbase";
 
 interface Props {
   calendar: TCalendar;
@@ -24,37 +25,39 @@ const Calendar = ({
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
   return (
-    <View>
+    <View className="mb-5">
       <View className="flex-row">
-        <View className="w-8"></View>
-        {calendar[1].map((room, index) => {
-          return (
-            <View
-              key={index}
-              className="flex-1 border border-neutral-300 justify-center items-center h-10"
-            >
-              <Text>{room.name}</Text>
-            </View>
-          );
-        })}
-      </View>
-      <View className="flex-row">
-        <View>
-          {calendar[0].map(({ hour }: IHourRow, index) => {
+        <View className="pt-10">
+          {calendar[0].map(({ hour }: IHourRow, index, arr) => {
             return (
-              <View
-                key={index}
-                className="h-12 items-center justify-center w-8 border border-neutral-300"
-              >
-                <Text className="">{hour.toString() + "h"}</Text>
-              </View>
+              index !== arr.length - 1 && (
+                <View
+                  key={index}
+                  className="h-12 items-center justify-center w-8 border border-neutral-300"
+                >
+                  <Text className="">{hour.toString() + "h"}</Text>
+                </View>
+              )
             );
           })}
         </View>
-        <View className="flex-1 flex-row">
+        <ScrollView horizontal>
           {calendar[1].map((room: IRoomData, index, rooms) => {
             return (
-              <View key={index} className="flex-1">
+              <View
+                key={index}
+                style={{
+                  minWidth: 118,
+                  height: "100%",
+                  width: String(100 / rooms.length) + "%",
+                }}
+              >
+                <View
+                  key={index}
+                  className="border border-neutral-300 max-h-10 justify-center items-center h-10"
+                >
+                  <Text>{room.name}</Text>
+                </View>
                 {room.dates.map((dateObj, index) => {
                   return (
                     <Pressable
@@ -68,7 +71,11 @@ const Calendar = ({
                         dateObj.isEnd && "border-b"
                       }`}
                       onPress={() => {
-                        if (!dateObj.reserved) {
+                        if (pb.authStore.model?.role === "reader") {
+                          Alert.alert(
+                            "Você não pode criar ou editar cirurgias"
+                          );
+                        } else if (!dateObj.reserved) {
                           setDataToCreate({
                             roomId: dateObj.roomId,
                             startDate: dateObj.startDate,
@@ -76,20 +83,42 @@ const Calendar = ({
                           });
                           setCreateSurgeryModalIsOpen(true);
                         } else if (dateObj.data) {
-                          setEditSurgeryModal({
-                            data: dateObj.data,
-                            isOpen: true,
-                          });
+                          if (
+                            (dateObj.data.doctor.id ||
+                              dateObj.data.expand.doctor.id) ===
+                              pb.authStore.model?.id ||
+                            pb.authStore.model?.role === "admin"
+                          ) {
+                            setEditSurgeryModal({
+                              data: dateObj.data,
+                              isOpen: true,
+                            });
+                          } else {
+                            Alert.alert(
+                              "Você não pode editar cirugias de outros médicos"
+                            );
+                          }
                         }
                       }}
                     >
                       {dateObj.data && dateObj.isStart && (
                         <Pressable
                           onPress={() => {
-                            setEditSurgeryModal({
-                              data: dateObj.data,
-                              isOpen: true,
-                            });
+                            if (
+                              (dateObj.data?.doctor.id ||
+                                dateObj.data?.expand.doctor.id) ===
+                                pb.authStore.model?.id ||
+                              pb.authStore.model?.role === "admin"
+                            ) {
+                              setEditSurgeryModal({
+                                data: dateObj.data,
+                                isOpen: true,
+                              });
+                            } else {
+                              Alert.alert(
+                                "Você não pode editar cirugias de outros médicos"
+                              );
+                            }
                           }}
                           style={{
                             height:
@@ -110,11 +139,17 @@ const Calendar = ({
                               dateObj.startDate,
                               pbDateStringToDate(dateObj.data.endDate)
                             ) === 1 && "flex-row space-x-3"
-                          } mx-1 px-2 rounded`}
+                          } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
-                            {dateObj.data.doctor.name ||
-                              dateObj.data.expand.doctor.name}
+                            {(dateObj.data.doctor.name &&
+                              dateObj.data.doctor.name.substring(0, 16) +
+                                ".") ||
+                              (dateObj.data.expand.doctor.name &&
+                                dateObj.data.expand.doctor.name.substring(
+                                  0,
+                                  16
+                                ) + ".")}
                           </Text>
                           {!(
                             getSurgeryHeight(
@@ -134,7 +169,7 @@ const Calendar = ({
               </View>
             );
           })}
-        </View>
+        </ScrollView>
       </View>
     </View>
   );

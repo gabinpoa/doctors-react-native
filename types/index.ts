@@ -93,6 +93,7 @@ export type TSurgeriesNames = ISurgeryName[];
 
 export interface ISurgeryName {
   name: string;
+  id: string;
 }
 
 export interface IEditSurgeryModalState {

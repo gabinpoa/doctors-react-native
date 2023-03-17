@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { pb } from "../lib/pocketbase";
 import * as SplashScreen from "expo-splash-screen";
 
-function useVerifyAuth(navigation) {
+function useVerifyAuth(setLogged: Dispatch<SetStateAction<boolean>>) {
   async function saveAuthStoreFromAsyncStorage() {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -12,7 +12,7 @@ function useVerifyAuth(navigation) {
       if (token !== null && jsonModel !== null) {
         const model = JSON.parse(jsonModel);
         pb.authStore.save(token, model);
-        navigation.navigate("Drawer");
+        setLogged(true);
       } else {
         await SplashScreen.hideAsync();
       }

@@ -10,6 +10,7 @@ import useSubscribeToSurgeries from "../hooks/useSubscribeToSurgeries";
 import EditSurgeryModal from "../components/EditSurgeryModal";
 import * as SplashScreen from "expo-splash-screen";
 import getDayDate from "../hooks/getDayDate";
+import { AntDesign } from "@expo/vector-icons";
 
 const Home = ({ navigation }: any) => {
   const { calendar, setCalendar, dataToCreate } = useContext(
@@ -58,7 +59,10 @@ const Home = ({ navigation }: any) => {
         >
           <Text className="font-medium text-lg">{"<"}</Text>
         </Pressable>
-        <Text>{date}</Text>
+        <View className="items-center justify-center">
+          <AntDesign name="calendar" size={18} color="black" />
+          <Text>{date}</Text>
+        </View>
         <Pressable
           onPress={() => {
             if (day < 5) {

@@ -16,14 +16,15 @@ const Login = ({ navigation }: any) => {
     control,
     formState: { errors },
   } = useForm();
+  const { setLogged } = useContext(AppContext) as IContextDefaultValue;
 
-  useVerifyAuth(navigation);
+  useVerifyAuth(setLogged);
 
   async function onSubmit(data: FieldValues) {
     try {
       await pb.collection("users").authWithPassword(data.email, data.password);
       pb.authStore.save(pb.authStore.token, pb.authStore.model);
-      navigation.navigate("Drawer");
+      setLogged(true);
     } catch (e) {
       setLoginFailed(true);
       console.error(e);

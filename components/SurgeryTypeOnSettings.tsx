@@ -1,49 +1,63 @@
 import { View, Text, TextInput } from "react-native";
 import React, { Dispatch, SetStateAction, useState } from "react";
+import { ISurgeryName } from "../types";
 import { AntDesign } from "@expo/vector-icons";
-import { IRoomOnSettings } from "./RoomsModal";
 import { pb } from "../lib/pocketbase";
 
 interface Props {
-  room: IRoomOnSettings;
+  surgeryType: ISurgeryName;
+  setSurgeriesNames: Dispatch<SetStateAction<ISurgeryName[]>>;
+  surgeriesTypesArr: ISurgeryName[];
   index: number;
-  rooms: IRoomOnSettings[];
-  setRooms: Dispatch<SetStateAction<IRoomOnSettings[] | undefined>>;
 }
 
-const RoomOnSettings = ({ rooms, room, index, setRooms }: Props) => {
-  const [roomName, setRoomName] = useState(room.name);
+const SurgeryTypeOnSettings = ({
+  surgeryType,
+  setSurgeriesNames,
+  surgeriesTypesArr,
+  index,
+}: Props) => {
   const [editMode, setEditMode] = useState(false);
-  const [newRoom, setNewRoom] = useState("");
+  const [updatedSurgeryType, setUpdatedSurgeryType] = useState("");
 
-  function upadateRoom() {
-    if (newRoom.length > 3 && newRoom !== room.name) {
-      setRoomName(newRoom);
-      setEditMode(false);
-      pb.collection("rooms")
-        .update(room.id, { name: newRoom })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }
-
-  async function deleteRoom() {
+  async function deleteSurgeryType() {
     try {
       setEditMode(false);
-      await pb.collection("rooms").delete(room.id);
-      const newRooms = [...rooms].filter((e, i) => i !== index);
-      setRooms(newRooms);
+      await pb.collection("surgeries_names").delete(surgeryType.id);
+      const newSurgeriesTypes = [...surgeriesTypesArr].filter(
+        (e, i) => i !== index
+      );
+
+      setSurgeriesNames(newSurgeriesTypes);
     } catch (err) {
       console.log(err);
     }
   }
+
+  async function updateSurgeryType() {
+    if (updatedSurgeryType.length > 3) {
+      try {
+        await pb.collection("surgeries_names").update(surgeryType.id, {
+          name: updatedSurgeryType,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+
+      const updatedSurgeriesNames = [...surgeriesTypesArr];
+      updatedSurgeriesNames[index] = {
+        ...updatedSurgeriesNames[index],
+        name: updatedSurgeryType,
+      };
+    }
+  }
+
   return !editMode ? (
     <View
       className="border border-neutral-300 pl-2 h-10 items-center flex-row justify-between mt-2"
       style={{ borderRadius: 6 }}
     >
-      <Text>{roomName}</Text>
+      <Text>{surgeryType.name}</Text>
       <AntDesign
         onPress={() => {
           setEditMode(true);
@@ -61,20 +75,20 @@ const RoomOnSettings = ({ rooms, room, index, setRooms }: Props) => {
     >
       <TextInput
         className="flex-1"
-        defaultValue={room.name}
+        defaultValue={surgeryType.name}
         onChangeText={(text) => {
-          setNewRoom(text);
+          setUpdatedSurgeryType(text);
         }}
       />
       <AntDesign
-        onPress={deleteRoom}
+        onPress={deleteSurgeryType}
         style={{ padding: 8 }}
         name="delete"
         size={20}
         color="black"
       />
       <AntDesign
-        onPress={upadateRoom}
+        onPress={updateSurgeryType}
         style={{ padding: 8 }}
         name="check"
         size={20}
@@ -93,4 +107,4 @@ const RoomOnSettings = ({ rooms, room, index, setRooms }: Props) => {
   );
 };
 
-export default RoomOnSettings;
+export default SurgeryTypeOnSettings;

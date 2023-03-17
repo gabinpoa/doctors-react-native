@@ -1,6 +1,8 @@
 import { View, Text, Pressable } from "react-native";
 import React, { useState } from "react";
 import RoomsModal from "../components/RoomsModal";
+import DoctorsModal from "../components/DoctorsModal";
+import SurgeryTypesModal from "../components/SurgeryTypesModal";
 
 const AdminSettings = () => {
   const [roomsModalIsOpen, setRoomsModalIsOpen] = useState(false);
@@ -18,12 +20,11 @@ const AdminSettings = () => {
       >
         <Text className="text-base">Salas</Text>
       </Pressable>
-      {roomsModalIsOpen && (
-        <RoomsModal
-          roomsModalIsOpen={roomsModalIsOpen}
-          setRoomsModalIsOpen={setRoomsModalIsOpen}
-        />
-      )}
+      <RoomsModal
+        roomsModalIsOpen={roomsModalIsOpen}
+        setRoomsModalIsOpen={setRoomsModalIsOpen}
+      />
+
       <Pressable
         onPress={() => {
           setDoctorsModalIsOpen(true);
@@ -32,6 +33,11 @@ const AdminSettings = () => {
       >
         <Text className="text-base">Médicos</Text>
       </Pressable>
+      <DoctorsModal
+        modalIsOpen={doctorsModalIsOpen}
+        setModalIsOpen={setDoctorsModalIsOpen}
+      />
+
       <Pressable
         onPress={() => {
           setSurgeriyTypesModalIsOpen(true);
@@ -40,6 +46,10 @@ const AdminSettings = () => {
       >
         <Text className="text-base">Tipos de cirurgia</Text>
       </Pressable>
+      <SurgeryTypesModal
+        modalIsOpen={surgeriyTypesModalIsOpen}
+        setModalIsOpen={setSurgeriyTypesModalIsOpen}
+      />
     </View>
   );
 };

@@ -3,10 +3,8 @@ import * as React from "react";
 import { IDataToCreate, TCalendar } from "../types";
 
 export interface IContextDefaultValue {
-  limitHour: {
-    initial: number;
-    final: number;
-  };
+  logged: boolean;
+  setLogged: React.Dispatch<React.SetStateAction<boolean>>;
   dataToCreate: IDataToCreate | undefined;
   setDataToCreate: React.Dispatch<
     React.SetStateAction<IDataToCreate | undefined>
@@ -18,17 +16,15 @@ export interface IContextDefaultValue {
 export const AppContext = createContext<IContextDefaultValue | null>(null);
 
 export const AppContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [limitHour, setLimitHours] = useState({
-    initial: 6,
-    final: 23,
-  });
   const [dataToCreate, setDataToCreate] = useState<IDataToCreate>();
   const [calendar, setCalendar] = useState<TCalendar | []>([]);
+  const [logged, setLogged] = useState(false);
 
   return (
     <AppContext.Provider
       value={{
-        limitHour,
+        logged,
+        setLogged,
         dataToCreate,
         setDataToCreate,
         calendar,

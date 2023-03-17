@@ -1,8 +1,10 @@
-import { View, Text, Modal } from "react-native";
+import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import getRooms from "../hooks/getRooms";
 import RoomOnSettings from "./RoomOnSettings";
+import NewRoom from "./NewRoom";
+import { pb } from "../lib/pocketbase";
 
 interface Props {
   roomsModalIsOpen: boolean;
@@ -49,17 +51,19 @@ const RoomsModal = ({ roomsModalIsOpen, setRoomsModalIsOpen }: Props) => {
               color="black"
             />
           </View>
-          <View className="px-3 pb-3">
+          <ScrollView className="px-3 pb-3">
             {rooms &&
-              rooms.map((room, index) => (
+              rooms.map((room, index, roomsArray) => (
                 <RoomOnSettings
+                  rooms={roomsArray}
                   index={index}
-                  setRooms={setRooms}
                   key={index}
                   room={room}
+                  setRooms={setRooms}
                 />
               ))}
-          </View>
+            <NewRoom rooms={rooms} setRooms={setRooms} />
+          </ScrollView>
         </View>
       </View>
     </Modal>
