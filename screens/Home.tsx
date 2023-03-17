@@ -54,7 +54,7 @@ const Home = ({ navigation }: any) => {
     .filter((subStr, index) => index !== 2)
     .join("/");
   return (
-    <ScrollView className="bg-neutral-50">
+    <ScrollView className="bg-slate-200">
       <View className="flex-row justify-center items-center gap-x-10">
         <Pressable
           disabled={loading}

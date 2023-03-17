@@ -1,14 +1,7 @@
-import { View, Text, Modal, Pressable, Alert, TextInput } from "react-native";
-import React, {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { IDataToCreate, TRoomDataArray, TSurgeriesNames } from "../types";
+import { View, Text, Modal, Pressable, TextInput } from "react-native";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { IDataToCreate, TRoomDataArray } from "../types";
 import { AntDesign } from "@expo/vector-icons";
-import { AppContext, IContextDefaultValue } from "../context";
 import createSurgery from "../hooks/createSurgery";
 import getSurgeriesNames from "../hooks/getSurgeriesNames";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -88,6 +81,7 @@ const CreateSurgeryModal = ({
       }
     }
   }
+
   return (
     <Modal transparent visible={createSurgeryModalIsOpen} animationType="fade">
       <View className="px-6 flex-1 bg-black-o-28 justify-center">

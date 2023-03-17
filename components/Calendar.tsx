@@ -25,7 +25,7 @@ const Calendar = ({
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
   return (
-    <View className="mb-5">
+    <View className="mb-5 p-1">
       <View className="flex-row">
         <View className="pt-10">
           {calendar[0].map(({ hour }: IHourRow, index, arr) => {
@@ -33,7 +33,7 @@ const Calendar = ({
               index !== arr.length - 1 && (
                 <View
                   key={index}
-                  className="h-12 items-center justify-center w-8 border border-neutral-300"
+                  className="h-12 bg-white items-center justify-center w-8 border border-neutral-300"
                 >
                   <Text className="">{hour.toString() + "h"}</Text>
                 </View>
@@ -41,20 +41,27 @@ const Calendar = ({
             );
           })}
         </View>
-        <ScrollView horizontal>
+        <ScrollView
+          contentContainerStyle={{ flex: 1 }}
+          className="rounded-md"
+          horizontal
+        >
           {calendar[1].map((room: IRoomData, index, rooms) => {
             return (
               <View
+                className={`${index !== 0 && "border-l"} border-neutral-100`}
                 key={index}
                 style={{
                   minWidth: 118,
                   height: "100%",
-                  width: String(100 / rooms.length) + "%",
+                  width: `${100 / rooms.length}%`,
                 }}
               >
                 <View
                   key={index}
-                  className="border border-neutral-300 max-h-10 justify-center items-center h-10"
+                  className={`bg-white max-h-10 justify-center items-center h-10 ${
+                    index === 0 && "rounded-tl-md"
+                  } ${index === rooms.length - 1 && "rounded-tr-md"}`}
                 >
                   <Text>{room.name}</Text>
                 </View>
@@ -65,7 +72,7 @@ const Calendar = ({
                       style={{
                         width: "100%",
                       }}
-                      className={`h-6 border-neutral-200 ${
+                      className={`h-6 bg-white border-neutral-200 ${
                         !dateObj.reserved && "border-y"
                       } ${dateObj.isStart && "border-t"} ${
                         dateObj.isEnd && "border-b"
