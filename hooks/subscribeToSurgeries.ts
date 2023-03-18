@@ -4,8 +4,8 @@ import { pb } from "../lib/pocketbase";
 import {
   IRoomData,
   IRoomOnExpand,
-  ISurgeryData,
   IUser,
+  RoomRecord,
   RoomsRecord,
   SurgeriesRecord,
   TCalendar,
@@ -27,7 +27,7 @@ async function subcribeToSurgeries(
   setCalendar: Dispatch<SetStateAction<TCalendar | []>>
 ) {
   pb.collection("surgeries")
-    .subscribe("*", (e: RecordSubscription<ISurgeryData>) => {
+    .subscribe("*", (e: RecordSubscription<SurgeriesRecord>) => {
       const dayDate = getDayDate(day);
       dayDate.setDate(dayDate.getDate() + 1);
       const roomIndex = roomArrayVar.findIndex(
@@ -36,16 +36,16 @@ async function subcribeToSurgeries(
       if (e.action === "create" || e.action === "update") {
         pb.collection("users")
           .getOne(e.record.doctor)
-          .then((userRecord: unknown) => {
+          .then((userRecord) => {
             pb.collection("rooms")
               .getOne(e.record.room)
               .then((roomRecord: unknown) => {
                 e.record.expand = {
                   doctor: userRecord as IUser,
-                  room: roomRecord as IRoomOnExpand,
+                  room: roomRecord as RoomRecord,
                 };
                 roomArrayVar[roomIndex].dates = updateToNewSurgery(
-                  e.record as ISurgeryData,
+                  e.record,
                   roomArrayVar[roomIndex].dates
                 );
                 setCalendar([hoursColumn, roomArrayVar]);

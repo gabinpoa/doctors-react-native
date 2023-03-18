@@ -1,9 +1,9 @@
 import { getRandomColor } from "../lib/colors";
-import { IDateObj, ISurgeryData, SurgeriesRecord } from "../types";
+import { IDateObj, SurgeriesRecord } from "../types";
 import pbDateStringToDate from "./pbDateStringToDate";
 
 function insertSurgeriesIntoHours(
-  surgeries: ISurgeryData[],
+  surgeries: SurgeriesRecord[],
   hours: IDateObj[]
 ) {
   surgeries.forEach((surgery) => {
@@ -28,7 +28,8 @@ function insertSurgeriesIntoHours(
         hours[counter].isEnd = true;
       }
       hours[counter].reserved = true;
-      hours[counter].data = { ...surgery, color: getRandomColor() };
+      surgery.color = getRandomColor();
+      hours[counter].data = surgery;
     }
   });
 
