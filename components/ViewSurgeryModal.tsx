@@ -5,6 +5,7 @@ import { AntDesign } from "@expo/vector-icons";
 import pbDateStringToDate from "../hooks/pbDateStringToDate";
 import { pb } from "../lib/pocketbase";
 import deleteSurgery from "../hooks/deleteSurgery";
+import startAndEndTimeString from "../hooks/startAndEndTimeString";
 
 interface Props {
   viewSurgeryModal: IEditSurgeryModalState;
@@ -27,15 +28,12 @@ const ViewSurgeryModal = ({
             <View className="flex-row justify-between items-center px-2">
               <Text className="font-light">
                 Horário:{" "}
-                <Text className="font-normal text-neutral-700">{`${pbDateStringToDate(
-                  viewSurgeryModal.data.startDate
-                )
-                  .toTimeString()
-                  .slice(0, 5)} - ${pbDateStringToDate(
-                  viewSurgeryModal.data.endDate
-                )
-                  .toTimeString()
-                  .slice(0, 5)}`}</Text>
+                <Text className="font-normal text-neutral-700">
+                  {startAndEndTimeString(
+                    viewSurgeryModal.data.startDate,
+                    viewSurgeryModal.data.endDate
+                  )}
+                </Text>
               </Text>
               <Pressable
                 className="p-2"
