@@ -1,6 +1,12 @@
+import { RecordSubscription } from "pocketbase";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { pb } from "../lib/pocketbase";
 import {
+  IRoomData,
+  IRoomOnExpand,
+  ISurgeryData,
+  IUser,
+  RoomsRecord,
   SurgeriesRecord,
   TCalendar,
   THourRowArray,
@@ -21,7 +27,7 @@ async function subcribeToSurgeries(
   setCalendar: Dispatch<SetStateAction<TCalendar | []>>
 ) {
   pb.collection("surgeries")
-    .subscribe("*", (e) => {
+    .subscribe("*", (e: RecordSubscription<ISurgeryData>) => {
       const dayDate = getDayDate(day);
       dayDate.setDate(dayDate.getDate() + 1);
       const roomIndex = roomArrayVar.findIndex(
@@ -30,13 +36,20 @@ async function subcribeToSurgeries(
       if (e.action === "create" || e.action === "update") {
         pb.collection("users")
           .getOne(e.record.doctor)
-          .then((userRecord) => {
-            e.record.doctor = userRecord;
-            roomArrayVar[roomIndex].dates = updateToNewSurgery(
-              e.record as SurgeriesRecord,
-              roomArrayVar[roomIndex].dates
-            );
-            setCalendar([hoursColumn, roomArrayVar]);
+          .then((userRecord: unknown) => {
+            pb.collection("rooms")
+              .getOne(e.record.room)
+              .then((roomRecord: unknown) => {
+                e.record.expand = {
+                  doctor: userRecord as IUser,
+                  room: roomRecord as IRoomOnExpand,
+                };
+                roomArrayVar[roomIndex].dates = updateToNewSurgery(
+                  e.record as ISurgeryData,
+                  roomArrayVar[roomIndex].dates
+                );
+                setCalendar([hoursColumn, roomArrayVar]);
+              });
           })
           .catch((err) => console.log(err + " users"));
       } else if (e.action === "delete") {

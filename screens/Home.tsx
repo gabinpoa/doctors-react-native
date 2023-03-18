@@ -17,6 +17,7 @@ import EditSurgeryModal from "../components/EditSurgeryModal";
 import * as SplashScreen from "expo-splash-screen";
 import getDayDate from "../hooks/getDayDate";
 import { AntDesign } from "@expo/vector-icons";
+import ViewSurgeryModal from "../components/ViewSurgeryModal";
 
 const Home = ({ navigation }: any) => {
   const { calendar, setCalendar, dataToCreate } = useContext(
@@ -28,7 +29,8 @@ const Home = ({ navigation }: any) => {
     useState(false);
   const [editSurgeryModal, setEditSurgeryModal] =
     useState<IEditSurgeryModalState>({ isOpen: false, data: undefined });
-
+  const [viewSurgeryModal, setViewSurgeryModal] =
+    useState<IEditSurgeryModalState>({ isOpen: false, data: undefined });
   useCalendar(day, setCalendar, setLoading);
   useSubscribeToSurgeries(day, setDay, calendar[1], calendar[0], setCalendar);
 
@@ -98,9 +100,14 @@ const Home = ({ navigation }: any) => {
           />
         </>
       )}
+      <ViewSurgeryModal
+        viewSurgeryModal={viewSurgeryModal}
+        setViewSurgeryModal={setViewSurgeryModal}
+        setEditSurgeryModal={setEditSurgeryModal}
+      />
       {calendar.length > 0 && !loading ? (
         <Calendar
-          setEditSurgeryModal={setEditSurgeryModal}
+          setViewSurgeryModal={setViewSurgeryModal}
           setCreateSurgeryModalIsOpen={setCreateSurgeryModalIsOpen}
           calendar={calendar as TCalendar}
         />

@@ -1,7 +1,15 @@
+import { ReactHookFormData } from "../components/CreateSurgeryModal";
 import { pb } from "../lib/pocketbase";
 import { ISurgeryData, IUpdateSurgeryData } from "../types";
+import { CreateSurgeryProps } from "./createSurgery";
 
-async function updateSurgery(id: string, newData: IUpdateSurgeryData) {
+interface UpdateSurgeryProps extends ReactHookFormData {
+  name: string;
+  endDate: string;
+  hospitalization: string;
+}
+
+async function updateSurgery(id: string, newData: UpdateSurgeryProps) {
   try {
     await pb.collection("surgeries").update(id, {
       ...newData,

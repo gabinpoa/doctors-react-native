@@ -1,21 +1,44 @@
-import { View, Text, Modal, Pressable, TextInput } from "react-native";
+import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { IDataToCreate, TRoomDataArray } from "../types";
+import { IDataToCreate, ISurgeryName, TRoomDataArray } from "../types";
 import { AntDesign } from "@expo/vector-icons";
 import createSurgery from "../hooks/createSurgery";
 import getSurgeriesNames from "../hooks/getSurgeriesNames";
 import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
-import createSurgeryName from "../hooks/createSurgeryName";
 import formatName from "../hooks/formatName";
 import verifyIsOccupied from "../hooks/verifyIsOccupied";
+import {
+  Controller,
+  FieldValues,
+  SubmitHandler,
+  useForm,
+} from "react-hook-form";
+import CreateSurgeryInput from "./CreateSurgeryInput";
+import Label from "./Label";
+import Checkbox from "expo-checkbox";
+import getHospitalizations from "../hooks/getHospitalizations";
+import getPbDateString from "../hooks/getPbDateString";
 
 interface Props {
   createSurgeryModalIsOpen: boolean;
   setCreateSurgeryModalIsOpen: Dispatch<SetStateAction<boolean>>;
   dataToCreate: IDataToCreate | undefined;
   roomsArray: TRoomDataArray;
+}
+
+export interface IHospitalization {
+  name: string;
+  id: string;
+}
+
+export interface ReactHookFormData {
+  patient: string;
+  anesthesist: boolean;
+  healthInsurance?: string;
+  observations?: string;
+  surgeon?: string;
+  bed?: string;
 }
 
 const CreateSurgeryModal = ({
@@ -25,19 +48,18 @@ const CreateSurgeryModal = ({
   roomsArray,
 }: Props) => {
   const [namePickerIsOpen, setNamePickerIsOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [patient, setPatient] = useState("");
-  const [newSurgeryName, setNewSurgeryName] = useState({
-    isOpen: false,
-    name: "",
-    error: false,
-  });
+  const [name, setName] = useState<null | string>(null);
+  const [hospitalizationPickerIsOpen, setHospitalizationPickerIsOpen] =
+    useState(false);
+  const [hospitalization, setHospitalization] = useState<null | string>(null);
   const [endDate, setEndDate] = useState({
     time: dataToCreate?.endDate,
     showPicker: false,
     error: "",
   });
   const { surgeriesNames } = getSurgeriesNames();
+  const { hospitalizations } = getHospitalizations();
+  const { handleSubmit, control, reset } = useForm();
 
   useEffect(() => {
     setEndDate({ ...endDate, time: dataToCreate?.endDate });
@@ -45,47 +67,34 @@ const CreateSurgeryModal = ({
 
   function close() {
     reset();
+    setName(null);
+    setHospitalization(null);
+    setHospitalizationPickerIsOpen(false);
+    setNamePickerIsOpen(false);
     setCreateSurgeryModalIsOpen(false);
   }
 
-  function reset() {
-    setName("");
-    setNamePickerIsOpen(false);
-    setPatient("");
-    setNewSurgeryName({ name: "", isOpen: false, error: false });
-  }
-  async function onSubmit() {
-    const patientName = patient.length > 0 ? patient : undefined;
-    if (dataToCreate && name.length > 0) {
-      await createSurgery({
-        roomId: dataToCreate.roomId,
+  async function onSubmit(data: ReactHookFormData) {
+    if (dataToCreate && name && hospitalization && endDate.time) {
+      const fullData = {
+        endDate: getPbDateString(endDate.time),
+        room: dataToCreate.roomId,
+        startDate: getPbDateString(dataToCreate.startDate),
+        hospitalization: hospitalization,
         name: name,
-        startDate: dataToCreate.startDate,
-        endDate: endDate.time as Date,
-        patient: patientName,
+        ...data,
+      };
+      await createSurgery({
+        ...fullData,
       });
       close();
-    } else if (dataToCreate && newSurgeryName.isOpen) {
-      if (newSurgeryName.name.length < 3) {
-        setNewSurgeryName({ ...newSurgeryName, error: true });
-      } else {
-        await createSurgery({
-          roomId: dataToCreate.roomId,
-          name: formatName(newSurgeryName.name),
-          startDate: dataToCreate.startDate,
-          endDate: endDate.time as Date,
-          patient: patientName,
-        });
-        await createSurgeryName(formatName(newSurgeryName.name));
-        close();
-      }
     }
   }
 
   return (
     <Modal transparent visible={createSurgeryModalIsOpen} animationType="fade">
       <View className="px-6 flex-1 bg-black-o-28 justify-center">
-        <View className="w-full rounded-xl overflow-hidden bg-white ">
+        <View className="w-full max-h-[85vh] rounded-xl overflow-hidden bg-white ">
           <View className="flex-row justify-between items-center px-2 py-1 mb-1">
             <Text className="text-base">
               Nova cirurgia às{" "}
@@ -95,72 +104,39 @@ const CreateSurgeryModal = ({
               <AntDesign name="close" size={24} color="black" />
             </Pressable>
           </View>
-          <View className="">
-            <View className="px-2 mb-4">
-              <View className="mb-2">
-                <Text className="font-medium mb-1">Nome</Text>
-
-                <View className="flex-row justify-between">
-                  {!newSurgeryName.isOpen ? (
-                    <DropDownPicker
-                      searchable={surgeriesNames.length > 5 ? true : false}
-                      style={{
-                        borderColor: "rgb(212, 212, 212)",
-                        borderRadius: 6,
-                      }}
-                      placeholderStyle={{ color: "rgb(150, 150, 150)" }}
-                      placeholder="Selecione uma cirurgia"
-                      containerStyle={{ width: "80%" }}
-                      listMode="MODAL"
-                      value={name}
-                      multiple={false}
-                      setValue={setName}
-                      open={namePickerIsOpen}
-                      setOpen={setNamePickerIsOpen}
-                      items={surgeriesNames.map((surgeryName) => {
-                        return {
-                          value: surgeryName.name,
-                          label: surgeryName.name,
-                        };
-                      })}
-                    />
-                  ) : (
-                    <TextInput
-                      placeholderTextColor="rgb(150, 150, 150)"
-                      onChangeText={(value) => {
-                        setNewSurgeryName({ ...newSurgeryName, name: value });
-                      }}
-                      placeholder="Digite uma nova cirurgia"
-                      className="w-4/5 border border-neutral-300 rounded-md px-2 h-[50px]"
-                    />
-                  )}
-                  <Pressable
-                    onPress={() => {
-                      !newSurgeryName.isOpen
-                        ? setNewSurgeryName({
-                            isOpen: true,
-                            name: "",
-                            error: false,
-                          })
-                        : setNewSurgeryName({
-                            isOpen: false,
-                            name: "",
-                            error: false,
-                          });
-                    }}
-                    className="justify-center items-center border border-neutral-300 w-12 rounded-md"
-                  >
-                    <Ionicons name="add" size={24} color="black" />
-                  </Pressable>
-                </View>
+          <ScrollView>
+            <View className="px-2 mb-4 space-y-2">
+              <View>
+                <Label required>Operação</Label>
+                <DropDownPicker
+                  searchable={surgeriesNames.length > 5 ? true : false}
+                  style={{
+                    borderColor: "rgb(212, 212, 212)",
+                    borderRadius: 6,
+                  }}
+                  placeholderStyle={{ color: "rgb(150, 150, 150)" }}
+                  placeholder="Selecione uma cirurgia"
+                  listMode="MODAL"
+                  value={name}
+                  setValue={setName}
+                  multiple={false}
+                  open={namePickerIsOpen}
+                  setOpen={setNamePickerIsOpen}
+                  items={surgeriesNames.map((surgeryName) => {
+                    return {
+                      value: surgeryName.name,
+                      label: surgeryName.name,
+                    };
+                  })}
+                />
               </View>
-              <View className="mb-2">
-                <Text className="font-medium mb-1">Fim</Text>
+              <View>
+                <Label required>Fim</Label>
                 <Pressable
                   onPress={() => {
                     setEndDate({ ...endDate, showPicker: true });
                   }}
-                  className="border border-neutral-300 rounded-md px-2 h-[50px] justify-center"
+                  className="border border-neutral-300 rounded-md px-2 h-10 justify-center"
                 >
                   <Text>{endDate.time?.toTimeString().slice(0, 5)}</Text>
                 </Pressable>
@@ -227,29 +203,90 @@ const CreateSurgeryModal = ({
                 />
               )}
               <View>
-                <Text className="font-medium mb-1">
-                  Paciente{" "}
-                  <Text className="font-normal text-neutral-500">
-                    (opcional)
-                  </Text>
-                </Text>
-                <TextInput
-                  placeholderTextColor={"rgb(150, 150, 150)"}
+                <Label required>Paciente</Label>
+                <CreateSurgeryInput
                   placeholder="Nome do paciente"
-                  className="border border-neutral-300 rounded-md px-2 h-[50px]"
-                  onChangeText={(value) => {
-                    setPatient(value);
+                  control={control}
+                  inputName="patient"
+                  key={"patient"}
+                  required={true}
+                />
+              </View>
+              <View>
+                <Label required>Internação</Label>
+                <DropDownPicker
+                  style={{
+                    borderColor: "rgb(212, 212, 212)",
+                    borderRadius: 6,
                   }}
+                  placeholderStyle={{ color: "rgb(150, 150, 150)" }}
+                  placeholder="Selecione uma opção"
+                  listMode="MODAL"
+                  value={hospitalization}
+                  setValue={setHospitalization}
+                  multiple={false}
+                  open={hospitalizationPickerIsOpen}
+                  setOpen={setHospitalizationPickerIsOpen}
+                  items={hospitalizations.map((hospitalizationFromArr) => {
+                    return {
+                      value: hospitalizationFromArr.name,
+                      label: hospitalizationFromArr.name,
+                    };
+                  })}
+                />
+              </View>
+              <View>
+                <Label required>Com anestesista</Label>
+                <Controller
+                  name="anesthesist"
+                  control={control}
+                  defaultValue={false}
+                  render={({ field: { onChange, value } }) => {
+                    return <Checkbox onValueChange={onChange} value={value} />;
+                  }}
+                />
+              </View>
+              <View>
+                <Label>Convênio</Label>
+                <CreateSurgeryInput
+                  control={control}
+                  placeholder=""
+                  inputName="healthInsurance"
+                  key="healthInsurance"
+                />
+              </View>
+              <View>
+                <Label>OBS:</Label>
+                <CreateSurgeryInput
+                  control={control}
+                  placeholder=""
+                  inputName="observations"
+                />
+              </View>
+              <View>
+                <Label>Cirurgião</Label>
+                <CreateSurgeryInput
+                  control={control}
+                  placeholder=""
+                  inputName="surgeon"
+                />
+              </View>
+              <View>
+                <Label>Leito</Label>
+                <CreateSurgeryInput
+                  control={control}
+                  placeholder=""
+                  inputName="bed"
                 />
               </View>
             </View>
             <Pressable
-              onPress={onSubmit}
+              onPress={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
               className="bg-cyan-500 py-3 items-center"
             >
               <Text className="text-white text-base">Criar</Text>
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>

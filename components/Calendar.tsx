@@ -2,6 +2,7 @@ import { View, Text, Pressable, ScrollView, Alert } from "react-native";
 import React, { Dispatch, SetStateAction, useContext, useState } from "react";
 import {
   IEditSurgeryModalState,
+  ISurgeryData,
   IHourRow,
   IRoomData,
   TCalendar,
@@ -15,15 +16,18 @@ import { pb } from "../lib/pocketbase";
 interface Props {
   calendar: TCalendar;
   setCreateSurgeryModalIsOpen: Dispatch<SetStateAction<boolean>>;
-  setEditSurgeryModal: Dispatch<SetStateAction<IEditSurgeryModalState>>;
+  setViewSurgeryModal: Dispatch<SetStateAction<IEditSurgeryModalState>>;
 }
 
 const Calendar = ({
   calendar,
   setCreateSurgeryModalIsOpen,
-  setEditSurgeryModal,
+  setViewSurgeryModal,
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
+  function viewSurgery(data: ISurgeryData) {
+    setViewSurgeryModal({ data: data, isOpen: true });
+  }
   return (
     <View className="mb-5 p-1">
       <View className="flex-row">
@@ -71,17 +75,14 @@ const Calendar = ({
                       key={index}
                       style={{
                         width: "100%",
+                        overflow: "visible",
                       }}
-                      className={`h-6 bg-white border-neutral-200 ${
-                        !dateObj.reserved && "border-y"
-                      } ${dateObj.isStart && "border-t"} ${
-                        dateObj.isEnd && "border-b"
+                      className={`h-6 border-neutral-200 ${
+                        !dateObj.reserved && "border-y bg-white"
                       }`}
                       onPress={() => {
                         if (pb.authStore.model?.role === "reader") {
-                          Alert.alert(
-                            "Você não pode criar ou editar cirurgias"
-                          );
+                          Alert.alert("Você não pode criar cirurgias");
                         } else if (!dateObj.reserved) {
                           setDataToCreate({
                             roomId: dateObj.roomId,
@@ -90,46 +91,18 @@ const Calendar = ({
                           });
                           setCreateSurgeryModalIsOpen(true);
                         } else if (dateObj.data) {
-                          if (
-                            (dateObj.data.doctor.id ||
-                              dateObj.data.expand.doctor.id) ===
-                              pb.authStore.model?.id ||
-                            pb.authStore.model?.role === "admin"
-                          ) {
-                            setEditSurgeryModal({
-                              data: dateObj.data,
-                              isOpen: true,
-                            });
-                          } else {
-                            Alert.alert(
-                              "Você não pode editar cirugias de outros médicos"
-                            );
-                          }
+                          viewSurgery(dateObj.data);
                         }
                       }}
                     >
                       {dateObj.data && dateObj.isStart && (
                         <Pressable
                           onPress={() => {
-                            if (
-                              (dateObj.data?.doctor.id ||
-                                dateObj.data?.expand.doctor.id) ===
-                                pb.authStore.model?.id ||
-                              pb.authStore.model?.role === "admin"
-                            ) {
-                              setEditSurgeryModal({
-                                data: dateObj.data,
-                                isOpen: true,
-                              });
-                            } else {
-                              Alert.alert(
-                                "Você não pode editar cirugias de outros médicos"
-                              );
-                            }
+                            viewSurgery(dateObj.data as ISurgeryData);
                           }}
                           style={{
                             height:
-                              23 *
+                              24 *
                               getSurgeryHeight(
                                 dateObj.startDate,
                                 pbDateStringToDate(dateObj.data.endDate)
@@ -149,14 +122,8 @@ const Calendar = ({
                           } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
-                            {(dateObj.data.doctor.name &&
-                              dateObj.data.doctor.name.substring(0, 16) +
-                                ".") ||
-                              (dateObj.data.expand.doctor.name &&
-                                dateObj.data.expand.doctor.name.substring(
-                                  0,
-                                  16
-                                ) + ".")}
+                            {dateObj.data.expand.doctor.name.substring(0, 16) +
+                              "."}
                           </Text>
                           {!(
                             getSurgeryHeight(

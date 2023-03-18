@@ -14,20 +14,31 @@ export interface IDateObj {
   isEnd?: boolean;
 }
 
+export interface IRoomOnExpand {
+  name: string;
+  id: string;
+  institutiton: string;
+}
+
 export interface ISurgeryData {
-  collectionId: string;
-  collectionName: string;
-  created: string;
-  doctor: IUser;
+  doctor: string;
   endDate: string;
-  expand: any;
+  expand: {
+    doctor: IUser;
+    room: IRoomOnExpand;
+  };
   id: string;
   name: string;
-  patient: string | undefined;
+  patient: string;
   room: string;
   startDate: string;
-  updated: string;
-  color: string;
+  color?: string;
+  healthInsurance: string;
+  surgeon?: string;
+  observations?: string;
+  anesthesist: boolean;
+  bed?: string;
+  hospitalization: string;
 }
 
 export interface IUser {
@@ -44,12 +55,19 @@ export interface IUser {
 }
 
 export class SurgeriesRecord extends Record {
-  doctor!: IUser;
+  doctor!: string;
   endDate!: string;
   name!: string;
   patient!: string;
   room!: string;
   startDate!: string;
+  color?: string;
+  healthInsurance!: string;
+  surgeon?: string;
+  observations?: string;
+  anesthesist!: boolean;
+  bed?: string;
+  hospitalization!: string;
 }
 
 export class RoomsRecord extends Record {

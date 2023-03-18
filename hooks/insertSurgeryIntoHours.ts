@@ -1,9 +1,9 @@
 import { getRandomColor } from "../lib/colors";
-import { IDateObj, SurgeriesRecord } from "../types";
+import { IDateObj, ISurgeryData, SurgeriesRecord } from "../types";
 import pbDateStringToDate from "./pbDateStringToDate";
 
 function insertSurgeriesIntoHours(
-  surgeries: SurgeriesRecord[],
+  surgeries: ISurgeryData[],
   hours: IDateObj[]
 ) {
   surgeries.forEach((surgery) => {
