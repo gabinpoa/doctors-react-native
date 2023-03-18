@@ -16,7 +16,7 @@ async function getSurgeries(
       .getFullList(20, {
         $autoCancel: false,
         filter: `startDate > "${initialDatePbString}" && endDate < "${finalDatePbString}" && room = "${roomId}"`,
-        expand: "doctor",
+        expand: "doctor,room",
       });
 
     return surgeries;
