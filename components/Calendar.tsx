@@ -12,6 +12,7 @@ import getSurgeryHeight from "../hooks/getSurgeryHeight";
 import pbDateStringToDate from "../hooks/pbDateStringToDate";
 import { getRandomColor } from "../lib/colors";
 import { pb } from "../lib/pocketbase";
+import nameSubstring from "../hooks/nameSubstring";
 
 interface Props {
   calendar: TCalendar;
@@ -45,11 +46,7 @@ const Calendar = ({
             );
           })}
         </View>
-        <ScrollView
-          contentContainerStyle={{ flex: 1 }}
-          className="rounded-md"
-          horizontal
-        >
+        <ScrollView className="rounded-md" horizontal>
           {calendar[1].map((room: IRoomData, index, rooms) => {
             return (
               <View
@@ -63,11 +60,11 @@ const Calendar = ({
               >
                 <View
                   key={index}
-                  className={`bg-white max-h-10 justify-center items-center h-10 ${
+                  className={`bg-white px-1 max-h-10 justify-center items-center h-10 ${
                     index === 0 && "rounded-tl-md"
                   } ${index === rooms.length - 1 && "rounded-tr-md"}`}
                 >
-                  <Text>{room.name}</Text>
+                  <Text className="text-center">{room.name}</Text>
                 </View>
                 {room.dates.map((dateObj, index) => {
                   return (
@@ -122,8 +119,10 @@ const Calendar = ({
                           } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
-                            {dateObj.data.expand.doctor.name.substring(0, 16) +
-                              "."}
+                            {nameSubstring(
+                              dateObj.data.expand.doctor.name,
+                              rooms.length
+                            )}
                           </Text>
                           {!(
                             getSurgeryHeight(
