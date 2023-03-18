@@ -1,5 +1,5 @@
 import { View, Text, Pressable, ScrollView, Alert } from "react-native";
-import React, { Dispatch, SetStateAction, useContext, useState } from "react";
+import React, { Dispatch, SetStateAction, useContext } from "react";
 import {
   IEditSurgeryModalState,
   ISurgeryData,
@@ -10,8 +10,9 @@ import {
 import { AppContext, IContextDefaultValue } from "../context";
 import getSurgeryHeight from "../hooks/getSurgeryHeight";
 import pbDateStringToDate from "../hooks/pbDateStringToDate";
-import { getRandomColor } from "../lib/colors";
 import { pb } from "../lib/pocketbase";
+import calendarSubstring from "../hooks/calendarSubstring";
+import startAndEndTimeString from "../hooks/startAndEndTimeString";
 
 interface Props {
   calendar: TCalendar;
@@ -45,11 +46,7 @@ const Calendar = ({
             );
           })}
         </View>
-        <ScrollView
-          contentContainerStyle={{ flex: 1 }}
-          className="rounded-md"
-          horizontal
-        >
+        <ScrollView className="rounded-md" horizontal>
           {calendar[1].map((room: IRoomData, index, rooms) => {
             return (
               <View
@@ -63,11 +60,11 @@ const Calendar = ({
               >
                 <View
                   key={index}
-                  className={`bg-white max-h-10 justify-center items-center h-10 ${
+                  className={`bg-white px-1 max-h-10 justify-center items-center h-10 ${
                     index === 0 && "rounded-tl-md"
                   } ${index === rooms.length - 1 && "rounded-tr-md"}`}
                 >
-                  <Text>{room.name}</Text>
+                  <Text className="text-center">{room.name}</Text>
                 </View>
                 {room.dates.map((dateObj, index) => {
                   return (
@@ -122,17 +119,38 @@ const Calendar = ({
                           } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
-                            {dateObj.data.expand.doctor.name.substring(0, 16) +
-                              "."}
+                            {startAndEndTimeString(
+                              dateObj.data.startDate,
+                              dateObj.data.endDate
+                            )}
                           </Text>
-                          {!(
-                            getSurgeryHeight(
-                              dateObj.startDate,
-                              pbDateStringToDate(dateObj.data.endDate)
-                            ) === 1 && rooms.length > 1
-                          ) && (
-                            <Text className="text-white text-xs">
-                              {dateObj.data.name}
+                          {getSurgeryHeight(
+                            dateObj.startDate,
+                            pbDateStringToDate(dateObj.data.endDate)
+                          ) >= 3 ? (
+                            <>
+                              <Text className="text-white font-medium mt-1 text-xs">
+                                {calendarSubstring(
+                                  dateObj.data.expand.doctor.name,
+                                  rooms.length,
+                                  18
+                                )}
+                              </Text>
+                              <Text className="text-white text-xs">
+                                {calendarSubstring(
+                                  dateObj.data.name,
+                                  rooms.length,
+                                  18
+                                )}
+                              </Text>
+                            </>
+                          ) : (
+                            <Text className="text-white text-xs mt-1">
+                              {calendarSubstring(
+                                dateObj.data.expand.doctor.name,
+                                rooms.length,
+                                18
+                              )}
                             </Text>
                           )}
                         </Pressable>
