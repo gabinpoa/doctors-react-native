@@ -20,7 +20,7 @@ import { AntDesign } from "@expo/vector-icons";
 import ViewSurgeryModal from "../components/ViewSurgeryModal";
 
 const Home = ({ navigation }: any) => {
-  const { calendar, setCalendar, dataToCreate } = useContext(
+  const { calendar, setCalendar, dataToCreate, limitHours } = useContext(
     AppContext
   ) as IContextDefaultValue;
   const [loading, setLoading] = useState(false);
@@ -31,12 +31,15 @@ const Home = ({ navigation }: any) => {
     useState<IEditSurgeryModalState>({ isOpen: false, data: undefined });
   const [viewSurgeryModal, setViewSurgeryModal] =
     useState<IEditSurgeryModalState>({ isOpen: false, data: undefined });
-  useCalendar(day, setCalendar, setLoading);
+
+  useCalendar(day, setCalendar, setLoading, limitHours);
+
   useSubscribeToSurgeries(day, setDay, calendar[1], calendar[0], setCalendar);
 
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
+
   useEffect(
     () =>
       navigation.addListener("beforeRemove", (e: any) => {

@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useContext } from "react";
+import { LimitHours } from "../context";
 import { RoomsWithDate, TCalendar } from "../types";
 import getHoursColumn from "./getHoursColumn";
 import getRooms from "./getRooms";
@@ -7,24 +8,21 @@ import useSurgeries from "./useSurgeries";
 async function getCalendar(
   date: Date,
   setCalendar: Dispatch<SetStateAction<TCalendar | []>>,
-  setLoading: Dispatch<SetStateAction<boolean>>
+  setLoading: Dispatch<SetStateAction<boolean>>,
+  limitHours: LimitHours
 ) {
-  const limitHour = {
-    initial: 6,
-    final: 23,
-  };
   const rooms = await getRooms();
   if (rooms) {
     const calendar = await Promise.all(
       rooms.map(async (room) => {
         return {
           ...room,
-          dates: await useSurgeries(date, room.id, limitHour),
+          dates: await useSurgeries(date, room.id, limitHours),
         };
       })
     );
     const completeCalendar = [
-      getHoursColumn(date, limitHour),
+      getHoursColumn(date, limitHours),
       calendar,
     ] as TCalendar;
 

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { AppContext, IContextDefaultValue } from "../context";
+import { AppContext, IContextDefaultValue, LimitHours } from "../context";
 import getHours from "./getHours";
 import getFinalDate from "./getFinalDate";
 import getInitialDate from "./getInitialDate";
@@ -10,10 +10,10 @@ import insertSurgeriesIntoHours from "./insertSurgeryIntoHours";
 async function useSurgeries(
   date: Date,
   roomId: string,
-  limitHour: { initial: number; final: number }
+  limitHours: LimitHours
 ) {
-  const initialDate = getInitialDate(date, limitHour.initial);
-  const finalDate = getFinalDate(date, limitHour.final);
+  const initialDate = getInitialDate(date, limitHours.start);
+  const finalDate = getFinalDate(date, limitHours.end);
 
   const hours = await getHours(initialDate, finalDate, roomId);
   const surgeries = await getSurgeries(initialDate, finalDate, roomId);

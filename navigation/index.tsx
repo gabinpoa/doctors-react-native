@@ -19,6 +19,7 @@ SplashScreen.preventAutoHideAsync();
 const DrawerNavigator = () => {
   const { logged } = useContext(AppContext) as IContextDefaultValue;
   const [admin, setAdmin] = useState(false);
+
   useEffect(() => {
     if (pb.authStore.model && pb.authStore.model.role === "admin") {
       setAdmin(true);
