@@ -29,13 +29,7 @@ const Login = ({ navigation }: any) => {
   async function onSubmit(data: FieldValues) {
     try {
       setLoading(true);
-      await pb
-        .collection("users")
-        .authWithPassword(data.email, data.password)
-        .catch((e) => {
-          setLoginFailed(true);
-          setLoading(false);
-        });
+      await pb.collection("users").authWithPassword(data.email, data.password);
       pb.authStore.save(pb.authStore.token, pb.authStore.model);
       setLogged(true);
     } catch (e) {
