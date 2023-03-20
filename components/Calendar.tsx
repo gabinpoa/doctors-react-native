@@ -85,6 +85,7 @@ const Calendar = ({
                             roomId: dateObj.roomId,
                             startDate: dateObj.startDate,
                             endDate: dateObj.endDate,
+                            roomName: room.name,
                           });
                           setCreateSurgeryModalIsOpen(true);
                         } else if (dateObj.data) {

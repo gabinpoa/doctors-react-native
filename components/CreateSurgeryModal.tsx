@@ -113,7 +113,9 @@ const CreateSurgeryModal = ({
           <View className="flex-row justify-between items-center px-2 py-1 mb-1">
             <Text className="text-base">
               Nova cirurgia às{" "}
-              {dataToCreate?.startDate.toTimeString().slice(0, 5)}
+              {`${dataToCreate?.startDate.toTimeString().slice(0, 5)} em ${
+                dataToCreate?.roomName
+              }`}
             </Text>
             <Pressable className="p-2 " onPress={close}>
               <AntDesign name="close" size={24} color="black" />
