@@ -1,6 +1,6 @@
 import { View, Text, Pressable, Modal } from "react-native";
 import React, { Dispatch, SetStateAction } from "react";
-import { IEditSurgeryModalState } from "../types";
+import { AditionalField, IEditSurgeryModalState } from "../types";
 import { AntDesign } from "@expo/vector-icons";
 import pbDateStringToDate from "../hooks/pbDateStringToDate";
 import { pb } from "../lib/pocketbase";
@@ -21,6 +21,9 @@ const ViewSurgeryModal = ({
   if (viewSurgeryModal.data === undefined) {
     return null;
   } else {
+    const aditionalFields = viewSurgeryModal.data
+      .aditionalFields as AditionalField[];
+
     return (
       <Modal transparent visible={viewSurgeryModal.isOpen} animationType="fade">
         <View className="px-6 flex-1 bg-black-o-28 justify-center">
@@ -113,6 +116,20 @@ const ViewSurgeryModal = ({
                   </Text>
                 </Text>
               )}
+              {aditionalFields.map((field) => {
+                return (
+                  <Text key={field.name + "view"} className="font-light">
+                    {field.name + ": "}
+                    <Text className="text-neutral-700 font-normal">
+                      {typeof field.value === "string"
+                        ? field.value
+                        : field.value === true
+                        ? "Sim"
+                        : "Não"}
+                    </Text>
+                  </Text>
+                );
+              })}
               {(pb.authStore.model?.role === "admin" ||
                 pb.authStore.model?.id === viewSurgeryModal.data.doctor) && (
                 <>
