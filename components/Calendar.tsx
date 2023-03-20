@@ -111,11 +111,6 @@ const Calendar = ({
                               dateObj.startDate,
                               pbDateStringToDate(dateObj.data.endDate)
                             ) > 1 && "py-1"
-                          } ${
-                            getSurgeryHeight(
-                              dateObj.startDate,
-                              pbDateStringToDate(dateObj.data.endDate)
-                            ) === 1 && "flex-row space-x-3"
                           } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
@@ -144,7 +139,10 @@ const Calendar = ({
                                 )}
                               </Text>
                             </>
-                          ) : (
+                          ) : getSurgeryHeight(
+                              dateObj.startDate,
+                              pbDateStringToDate(dateObj.data.endDate)
+                            ) !== 1 ? (
                             <Text className="text-white text-xs mt-1">
                               {calendarSubstring(
                                 dateObj.data.expand.doctor.name,
@@ -152,7 +150,7 @@ const Calendar = ({
                                 18
                               )}
                             </Text>
-                          )}
+                          ) : null}
                         </Pressable>
                       )}
                     </Pressable>
