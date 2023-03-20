@@ -54,6 +54,7 @@ export class SurgeriesRecord extends Record {
   anesthesist!: boolean;
   bed?: string;
   hospitalization!: string;
+  aditionalFields: any;
 }
 
 export class RoomsRecord extends Record {
@@ -115,3 +116,8 @@ export type RootStackNavigationParamList = {
   Login: undefined;
   Drawer: undefined;
 };
+
+export interface AditionalField {
+  name: string;
+  value: boolean | string;
+}

@@ -11,12 +11,16 @@ export interface CreateSurgeryProps extends ReactHookFormData {
   hospitalization: string;
 }
 
-async function createSurgery(data: CreateSurgeryProps) {
+async function createSurgery(
+  data: CreateSurgeryProps,
+  aditionalFields?: any[]
+) {
   try {
     const user = pb.authStore;
     if (user.isValid && user.model) {
       await pb.collection("surgeries").create({
         ...data,
+        aditionalFields: JSON.stringify(aditionalFields),
         doctor: user.model.id,
       });
     }
