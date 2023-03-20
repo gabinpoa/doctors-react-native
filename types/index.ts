@@ -92,6 +92,7 @@ export interface IDataToCreate {
   startDate: Date;
   endDate: Date;
   roomId: string;
+  roomName: string;
 }
 
 export type TSurgeriesNames = ISurgeryName[];

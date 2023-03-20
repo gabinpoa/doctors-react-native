@@ -84,9 +84,9 @@ const EditSurgeryModal = ({
             <View className="flex-row justify-between items-center px-2 py-1 mb-1">
               <Text className="text-base">
                 Editar cirurgia ás{" "}
-                {pbDateStringToDate(editSurgeryModal.data.startDate)
+                {`${pbDateStringToDate(editSurgeryModal.data.startDate)
                   .toTimeString()
-                  .slice(0, 5)}
+                  .slice(0, 5)} em ${editSurgeryModal.data.expand.room.name}`}
               </Text>
               <Pressable className="p-2" onPress={close}>
                 <AntDesign name="close" size={24} color="black" />
