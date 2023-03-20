@@ -13,6 +13,9 @@ interface Props {
 }
 
 const MyDateTimePicker = ({ dateState, setDateState }: Props) => {
+  if (dateState.showPicker === false) {
+    return null;
+  }
   return (
     <DateTimePicker
       minuteInterval={30}
