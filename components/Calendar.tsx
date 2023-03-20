@@ -2,9 +2,9 @@ import { View, Text, Pressable, ScrollView, Alert } from "react-native";
 import React, { Dispatch, SetStateAction, useContext } from "react";
 import {
   IEditSurgeryModalState,
-  ISurgeryData,
   IHourRow,
   IRoomData,
+  SurgeriesRecord,
   TCalendar,
 } from "../types";
 import { AppContext, IContextDefaultValue } from "../context";
@@ -26,7 +26,7 @@ const Calendar = ({
   setViewSurgeryModal,
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
-  function viewSurgery(data: ISurgeryData) {
+  function viewSurgery(data: SurgeriesRecord) {
     setViewSurgeryModal({ data: data, isOpen: true });
   }
   return (
@@ -95,7 +95,7 @@ const Calendar = ({
                       {dateObj.data && dateObj.isStart && (
                         <Pressable
                           onPress={() => {
-                            viewSurgery(dateObj.data as ISurgeryData);
+                            dateObj.data && viewSurgery(dateObj.data);
                           }}
                           style={{
                             height:
