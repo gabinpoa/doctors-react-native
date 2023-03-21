@@ -1,5 +1,11 @@
 import { View, Text, Pressable, ScrollView, Alert } from "react-native";
-import React, { Dispatch, SetStateAction, useContext } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   IEditSurgeryModalState,
   IHourRow,
@@ -26,9 +32,11 @@ const Calendar = ({
   setViewSurgeryModal,
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
+
   function viewSurgery(data: SurgeriesRecord) {
     setViewSurgeryModal({ data: data, isOpen: true });
   }
+
   return (
     <View className="mb-5 p-1">
       <View className="flex-row">
