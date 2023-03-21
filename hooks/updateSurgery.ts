@@ -6,6 +6,7 @@ import { CreateSurgeryProps } from "./createSurgery";
 interface UpdateSurgeryProps extends ReactHookFormData {
   name: string;
   endDate: string;
+  startDate: string;
   hospitalization: string;
 }
 

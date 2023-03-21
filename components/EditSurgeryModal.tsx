@@ -1,6 +1,6 @@
 import { AntDesign } from "@expo/vector-icons";
-import { Dispatch, SetStateAction, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import {
   AditionalField,
@@ -26,6 +26,9 @@ import CreateSurgeryInput from "./CreateSurgeryInput";
 import Checkbox from "expo-checkbox";
 import getOtherFields, { FieldType } from "../hooks/getOtherFields";
 import { ScrollView } from "react-native";
+import verifyDateIsValid from "../hooks/verifyDateIsValid";
+import { AppContext, IContextDefaultValue } from "../context";
+import MyDateTimePicker, { DateState } from "./MyDateTimePicker";
 
 interface Props {
   editSurgeryModal: IEditSurgeryModalState;
@@ -39,6 +42,7 @@ const EditSurgeryModal = ({
   roomsArray,
 }: Props) => {
   if (editSurgeryModal.data) {
+    const [loading, setLoading] = useState(false);
     const [name, setName] = useState(editSurgeryModal.data.name);
     const [namePickerIsOpen, setNamePickerIsOpen] = useState(false);
     const [hospitalizationPickerIsOpen, setHospitalizationPickerIsOpen] =
@@ -46,34 +50,60 @@ const EditSurgeryModal = ({
     const [hospitalization, setHospitalization] = useState<null | string>(
       editSurgeryModal.data.hospitalization
     );
-    const [endDate, setEndDate] = useState({
+    const [dateValidity, setDateValidity] = useState<undefined | boolean>();
+    const [startDate, setStartDate] = useState<DateState>({
+      time: pbDateStringToDate(editSurgeryModal.data.startDate),
+      showPicker: false,
+      error: "",
+    });
+    const [endDate, setEndDate] = useState<DateState>({
       time: pbDateStringToDate(editSurgeryModal.data.endDate),
       showPicker: false,
       error: "",
     });
     const { surgeriesNames } = getSurgeriesNames();
     const { hospitalizations } = getHospitalizations();
-    const { handleSubmit, control, reset } = useForm();
-
+    const {
+      handleSubmit,
+      control,
+      reset,
+      formState: { isValid },
+    } = useForm({ mode: "onChange" });
+    const { limitHours } = useContext(AppContext) as IContextDefaultValue;
     const aditionalFields = editSurgeryModal.data
       .aditionalFields as AditionalField[];
 
     function close() {
       reset();
       setNamePickerIsOpen(false);
-      setEndDate({ ...endDate, showPicker: false, error: "" });
+      setDateValidity(undefined);
       setEditSurgeryModal({ data: undefined, isOpen: false });
     }
 
     async function onSubmit(data: ReactHookFormData) {
-      if (editSurgeryModal.data && hospitalization && name) {
+      if (
+        editSurgeryModal.data &&
+        hospitalization &&
+        name &&
+        verifyDateIsValid({
+          endDate: endDate.time as Date,
+          limitHours: limitHours,
+          roomId: editSurgeryModal.data.expand.room.id,
+          roomsArray: roomsArray,
+          startDate: startDate.time as Date,
+          surgeryId: editSurgeryModal.data.id,
+        })
+      ) {
+        setLoading(true);
         const fullData = {
-          endDate: getPbDateString(endDate.time),
+          startDate: getPbDateString(startDate.time as Date),
+          endDate: getPbDateString(endDate.time as Date),
           hospitalization: hospitalization,
           name: name,
           ...data,
         };
         await updateSurgery(editSurgeryModal.data.id, fullData);
+        setLoading(false);
         close();
       }
     }
@@ -115,81 +145,70 @@ const EditSurgeryModal = ({
                     };
                   })}
                 />
-
-                <Text className="font-medium mb-1">Fim</Text>
-                <Pressable
-                  onPress={() => {
-                    setEndDate({ ...endDate, showPicker: true });
-                  }}
-                  className="border border-neutral-300 rounded-md px-2 h-[50px] justify-center"
-                >
-                  <Text>{endDate.time?.toTimeString().slice(0, 5)}</Text>
-                </Pressable>
-                {endDate.error.length > 0 && (
-                  <Text className="text-red-500 mt-1">{endDate.error}</Text>
-                )}
-
-                {endDate.showPicker && (
-                  <DateTimePicker
-                    minuteInterval={30}
-                    value={endDate.time as Date}
-                    mode="time"
-                    is24Hour={true}
-                    onChange={(e, selected) => {
-                      if (editSurgeryModal.data && selected) {
-                        const roomIndex = roomsArray.findIndex(
-                          (room) => room.id === editSurgeryModal.data?.room
-                        );
-                        if (
-                          verifyIsOccupied({
-                            exists: true,
-                            oldEndDate: pbDateStringToDate(
-                              editSurgeryModal.data.endDate
-                            ),
-                            endDate: selected,
-                            roomDatesArray: roomsArray[roomIndex].dates,
-                          })
-                        ) {
-                          setEndDate({
-                            ...endDate,
-                            error: "O horário já está ocupado",
-                            showPicker: false,
-                          });
-                        } else if (
-                          selected >
-                            pbDateStringToDate(
-                              editSurgeryModal.data.startDate
-                            ) &&
-                          (selected.getHours() < 23 ||
-                            (selected.getHours() === 23 &&
-                              selected.getMinutes() === 0))
-                        ) {
-                          setEndDate({
-                            error: "",
-                            time: selected,
-                            showPicker: false,
-                          });
-                        } else if (selected.getHours() >= 23) {
-                          setEndDate({
-                            ...endDate,
-                            error: "O horário de fim não pode passar das 23h",
-                            showPicker: false,
-                          });
-                        } else if (
-                          selected <
-                          pbDateStringToDate(editSurgeryModal.data.startDate)
-                        ) {
-                          setEndDate({
-                            ...endDate,
-                            error:
-                              "O horário de fim não pode ser antes do início",
-                            showPicker: false,
-                          });
-                        }
-                      }
+                <View className="flex-row">
+                  <Label addStyle="flex-1">Início</Label>
+                  <Label addStyle="flex-1 ml-2">Fim</Label>
+                </View>
+                <View className="flex-row gap-x-2 h-10">
+                  <Pressable
+                    onPress={() => {
+                      setStartDate({ ...startDate, showPicker: true });
                     }}
-                  />
+                    className={`border ${
+                      dateValidity === false
+                        ? "border-red-500"
+                        : "border-neutral-300"
+                    } rounded-md px-2 justify-center flex-1`}
+                  >
+                    <Text>{startDate.time?.toTimeString().slice(0, 5)}</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setEndDate({ ...endDate, showPicker: true });
+                    }}
+                    className={`border ${
+                      dateValidity === false
+                        ? "border-red-500"
+                        : "border-neutral-300"
+                    } rounded-md px-2 justify-center flex-1`}
+                  >
+                    <Text>{endDate.time?.toTimeString().slice(0, 5)}</Text>
+                  </Pressable>
+                </View>
+                {dateValidity === false ? (
+                  <Text className="text-red-600 mt-1">Indisponível</Text>
+                ) : (
+                  dateValidity === true && (
+                    <Text className="text-green-600 mt-1">Disponível</Text>
+                  )
                 )}
+                <Pressable
+                  className="bg-blue-400 h-8 rounded-md justify-center mt-1"
+                  onPress={() => {
+                    const isValid = verifyDateIsValid({
+                      endDate: endDate.time as Date,
+                      limitHours: limitHours,
+                      roomId: editSurgeryModal.data?.expand.room.id as string,
+                      roomsArray: roomsArray,
+                      startDate: startDate.time as Date,
+                      surgeryId: editSurgeryModal.data?.id,
+                    });
+                    setDateValidity(isValid);
+                  }}
+                >
+                  <Text className="text-center text-white">
+                    Verificar disponibilidade
+                  </Text>
+                </Pressable>
+                <MyDateTimePicker
+                  dateState={startDate}
+                  setDateState={setStartDate}
+                />
+                <MyDateTimePicker
+                  dateState={endDate}
+                  setDateState={setEndDate}
+                />
+
                 <Label required>Paciente</Label>
                 <CreateSurgeryInput
                   placeholder="Nome do paciente"
@@ -290,9 +309,20 @@ const EditSurgeryModal = ({
               </View>
               <Pressable
                 onPress={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
-                className="bg-cyan-500 py-3 items-center"
+                className={`${
+                  dateValidity === false || !hospitalization || !isValid
+                    ? "bg-neutral-300"
+                    : "bg-cyan-500"
+                } py-3 items-center`}
+                disabled={
+                  dateValidity === false || !hospitalization || !isValid
+                }
               >
-                <Text className="text-white text-base">Salvar</Text>
+                {loading ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text className="text-white text-base">Criar</Text>
+                )}
               </Pressable>
             </ScrollView>
           </View>

@@ -100,8 +100,6 @@ const CreateSurgeryModal = ({
     setName(null);
     setDateValidity(undefined);
     setHospitalization(null);
-    setHospitalizationPickerIsOpen(false);
-    setNamePickerIsOpen(false);
     setCreateSurgeryModalIsOpen(false);
   }
 
