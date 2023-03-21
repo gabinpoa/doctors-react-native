@@ -1,4 +1,11 @@
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import React, {
   Dispatch,
   SetStateAction,
@@ -58,6 +65,7 @@ const CreateSurgeryModal = ({
   dataToCreate,
   roomsArray,
 }: Props) => {
+  const [loading, setLoading] = useState(false);
   const [namePickerIsOpen, setNamePickerIsOpen] = useState(false);
   const [name, setName] = useState<null | string>(null);
   const [hospitalizationPickerIsOpen, setHospitalizationPickerIsOpen] =
@@ -76,7 +84,9 @@ const CreateSurgeryModal = ({
   });
   const { surgeriesNames } = getSurgeriesNames();
   const { hospitalizations } = getHospitalizations();
-  const { handleSubmit, control, reset } = useForm();
+  const { handleSubmit, control, reset, formState } = useForm({
+    mode: "onChange",
+  });
   const { limitHours } = useContext(AppContext) as IContextDefaultValue;
   const otherFields = getOtherFields();
 
@@ -108,6 +118,7 @@ const CreateSurgeryModal = ({
         startDate: startDate.time as Date,
       })
     ) {
+      setLoading(true);
       const aditionalFieldsArr = otherFields
         ?.map((field) => {
           if (`${field.name}` in data) {
@@ -131,6 +142,7 @@ const CreateSurgeryModal = ({
         bed: data.bed,
       };
       await createSurgery(fullData, aditionalFieldsArr);
+      setLoading(false);
       close();
     }
   }
@@ -263,7 +275,7 @@ const CreateSurgeryModal = ({
                   };
                 })}
               />
-              <Label required>Com anestesista</Label>
+              <Label>Com anestesista</Label>
               <Controller
                 name="anesthesist"
                 control={control}
@@ -326,11 +338,19 @@ const CreateSurgeryModal = ({
             <Pressable
               onPress={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
               className={`${
-                dateValidity === false ? "bg-neutral-300" : "bg-cyan-500"
+                dateValidity === false || !hospitalization || !formState.isValid
+                  ? "bg-neutral-300"
+                  : "bg-cyan-500"
               } py-3 items-center`}
-              disabled={!dateValidity}
+              disabled={
+                dateValidity === false || !hospitalization || !formState.isValid
+              }
             >
-              <Text className="text-white text-base">Criar</Text>
+              {loading ? (
+                <ActivityIndicator />
+              ) : (
+                <Text className="text-white text-base">Criar</Text>
+              )}
             </Pressable>
           </ScrollView>
         </View>
