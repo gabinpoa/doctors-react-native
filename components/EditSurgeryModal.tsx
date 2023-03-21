@@ -135,6 +135,7 @@ const EditSurgeryModal = ({
                   placeholder="Selecione uma cirurgia"
                   value={name}
                   multiple={false}
+                  listMode="MODAL"
                   setValue={setName}
                   open={namePickerIsOpen}
                   setOpen={setNamePickerIsOpen}
