@@ -1,11 +1,12 @@
 import { ReactHookFormData } from "../components/CreateSurgeryModal";
 import { pb } from "../lib/pocketbase";
-import { ISurgeryData, IUpdateSurgeryData } from "../types";
+import { IUpdateSurgeryData } from "../types";
 import { CreateSurgeryProps } from "./createSurgery";
 
 interface UpdateSurgeryProps extends ReactHookFormData {
   name: string;
   endDate: string;
+  startDate: string;
   hospitalization: string;
 }
 

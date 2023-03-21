@@ -1,10 +1,16 @@
 import { View, Text, Pressable, ScrollView, Alert } from "react-native";
-import React, { Dispatch, SetStateAction, useContext } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   IEditSurgeryModalState,
-  ISurgeryData,
   IHourRow,
   IRoomData,
+  SurgeriesRecord,
   TCalendar,
 } from "../types";
 import { AppContext, IContextDefaultValue } from "../context";
@@ -26,9 +32,11 @@ const Calendar = ({
   setViewSurgeryModal,
 }: Props) => {
   const { setDataToCreate } = useContext(AppContext) as IContextDefaultValue;
-  function viewSurgery(data: ISurgeryData) {
+
+  function viewSurgery(data: SurgeriesRecord) {
     setViewSurgeryModal({ data: data, isOpen: true });
   }
+
   return (
     <View className="mb-5 p-1">
       <View className="flex-row">
@@ -85,6 +93,7 @@ const Calendar = ({
                             roomId: dateObj.roomId,
                             startDate: dateObj.startDate,
                             endDate: dateObj.endDate,
+                            roomName: room.name,
                           });
                           setCreateSurgeryModalIsOpen(true);
                         } else if (dateObj.data) {
@@ -95,7 +104,7 @@ const Calendar = ({
                       {dateObj.data && dateObj.isStart && (
                         <Pressable
                           onPress={() => {
-                            viewSurgery(dateObj.data as ISurgeryData);
+                            dateObj.data && viewSurgery(dateObj.data);
                           }}
                           style={{
                             height:
@@ -111,11 +120,6 @@ const Calendar = ({
                               dateObj.startDate,
                               pbDateStringToDate(dateObj.data.endDate)
                             ) > 1 && "py-1"
-                          } ${
-                            getSurgeryHeight(
-                              dateObj.startDate,
-                              pbDateStringToDate(dateObj.data.endDate)
-                            ) === 1 && "flex-row space-x-3"
                           } px-1 rounded`}
                         >
                           <Text className="text-white text-[13px] font-medium">
@@ -144,7 +148,10 @@ const Calendar = ({
                                 )}
                               </Text>
                             </>
-                          ) : (
+                          ) : getSurgeryHeight(
+                              dateObj.startDate,
+                              pbDateStringToDate(dateObj.data.endDate)
+                            ) !== 1 ? (
                             <Text className="text-white text-xs mt-1">
                               {calendarSubstring(
                                 dateObj.data.expand.doctor.name,
@@ -152,7 +159,7 @@ const Calendar = ({
                                 18
                               )}
                             </Text>
-                          )}
+                          ) : null}
                         </Pressable>
                       )}
                     </Pressable>

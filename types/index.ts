@@ -8,7 +8,7 @@ export interface IDateObj {
   startDate: Date;
   endDate: Date;
   reserved: boolean;
-  data?: ISurgeryData;
+  data?: SurgeriesRecord;
   roomId: string;
   isStart?: boolean;
   isEnd?: boolean;
@@ -20,31 +20,13 @@ export interface IRoomOnExpand {
   institutiton: string;
 }
 
-export interface ISurgeryData {
-  doctor: string;
-  endDate: string;
-  expand: {
-    doctor: IUser;
-    room: IRoomOnExpand;
-  };
-  id: string;
+export interface RoomRecord extends Record {
   name: string;
-  patient: string;
-  room: string;
-  startDate: string;
-  color?: string;
-  healthInsurance: string;
-  surgeon?: string;
-  observations?: string;
-  anesthesist: boolean;
-  bed?: string;
-  hospitalization: string;
+  id: string;
+  institutiton: string;
 }
 
-export interface IUser {
-  id: string;
-  created: string;
-  updated: string;
+export interface IUser extends Record {
   username?: string;
   email: string;
   emailVisibility?: boolean;
@@ -56,6 +38,10 @@ export interface IUser {
 
 export class SurgeriesRecord extends Record {
   doctor!: string;
+  declare expand: {
+    doctor: IUser;
+    room: RoomRecord;
+  };
   endDate!: string;
   name!: string;
   patient!: string;
@@ -68,6 +54,7 @@ export class SurgeriesRecord extends Record {
   anesthesist!: boolean;
   bed?: string;
   hospitalization!: string;
+  aditionalFields: any;
 }
 
 export class RoomsRecord extends Record {
@@ -105,6 +92,7 @@ export interface IDataToCreate {
   startDate: Date;
   endDate: Date;
   roomId: string;
+  roomName: string;
 }
 
 export type TSurgeriesNames = ISurgeryName[];
@@ -116,7 +104,7 @@ export interface ISurgeryName {
 
 export interface IEditSurgeryModalState {
   isOpen: boolean;
-  data: ISurgeryData | undefined;
+  data: SurgeriesRecord | undefined;
 }
 
 export interface IUpdateSurgeryData {
@@ -129,3 +117,8 @@ export type RootStackNavigationParamList = {
   Login: undefined;
   Drawer: undefined;
 };
+
+export interface AditionalField {
+  name: string;
+  value: boolean | string;
+}

@@ -9,6 +9,7 @@ async function getSurgeries(
   roomId: string
 ) {
   const initialDatePbString = getPbDateString(initialDate);
+
   const finalDatePbString = getPbDateString(finalDate);
   try {
     const surgeries: SurgeriesRecord[] = await pb

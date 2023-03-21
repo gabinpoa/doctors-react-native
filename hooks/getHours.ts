@@ -5,7 +5,7 @@ async function getHours(initialDate: Date, finalDate: Date, roomId: string) {
 
   for (
     let counterDate = new Date(initialDate);
-    counterDate.getHours() < finalDate.getHours();
+    counterDate < finalDate;
     counterDate.setMinutes(counterDate.getMinutes() + 30)
   ) {
     const objEndDate = new Date(counterDate);
@@ -20,7 +20,6 @@ async function getHours(initialDate: Date, finalDate: Date, roomId: string) {
 
     dates.push(dateObj);
   }
-
   return dates;
 }
 

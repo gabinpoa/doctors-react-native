@@ -8,6 +8,13 @@ import { AntDesign } from "@expo/vector-icons";
 import useVerifyAuth from "../hooks/useVerifyAuth";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackNavigationParamList } from "../types";
+import { Record } from "pocketbase";
+
+export interface Institution extends Record {
+  name: string;
+  start: number;
+  end: number;
+}
 
 const Login = ({ navigation }: any) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +25,9 @@ const Login = ({ navigation }: any) => {
     control,
     formState: { errors },
   } = useForm();
-  const { setLogged } = useContext(AppContext) as IContextDefaultValue;
+  const { setLogged, setLimitHours } = useContext(
+    AppContext
+  ) as IContextDefaultValue;
 
   useVerifyAuth(setLogged);
 
@@ -31,6 +40,10 @@ const Login = ({ navigation }: any) => {
       setLoading(true);
       await pb.collection("users").authWithPassword(data.email, data.password);
       pb.authStore.save(pb.authStore.token, pb.authStore.model);
+      const institution = (await pb
+        .collection("institutions")
+        .getOne(pb.authStore.model?.institution)) as Institution;
+      setLimitHours({ start: institution.start, end: institution.end });
       setLogged(true);
     } catch (e) {
       setLoginFailed(true);
