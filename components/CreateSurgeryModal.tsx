@@ -104,6 +104,7 @@ const CreateSurgeryModal = ({
   }
 
   async function onSubmit(data: ReactHookFormData) {
+    setLoading(true);
     if (
       dataToCreate &&
       name &&
@@ -116,7 +117,6 @@ const CreateSurgeryModal = ({
         startDate: startDate.time as Date,
       })
     ) {
-      setLoading(true);
       const aditionalFieldsArr = otherFields
         ?.map((field) => {
           if (`${field.name}` in data) {
@@ -142,6 +142,9 @@ const CreateSurgeryModal = ({
       await createSurgery(fullData, aditionalFieldsArr);
       setLoading(false);
       close();
+    } else {
+      setDateValidity(false);
+      setLoading(false);
     }
   }
 
@@ -215,7 +218,9 @@ const CreateSurgeryModal = ({
                 </Pressable>
               </View>
               {dateValidity === false ? (
-                <Text className="text-red-600 mt-1">Indisponível</Text>
+                <Text className="text-red-600 mt-1">
+                  Indisponível ou inválido
+                </Text>
               ) : (
                 dateValidity === true && (
                   <Text className="text-green-600 mt-1">Disponível</Text>
@@ -332,6 +337,11 @@ const CreateSurgeryModal = ({
                   </View>
                 );
               })}
+              {dateValidity === false && (
+                <Text className="mt-3 text-red-600">
+                  O horário não esta disponível ou é inválido
+                </Text>
+              )}
             </View>
             <Pressable
               onPress={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
