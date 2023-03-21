@@ -1,5 +1,18 @@
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { IDataToCreate, ISurgeryName, TRoomDataArray } from "../types";
 import { AntDesign } from "@expo/vector-icons";
 import createSurgery from "../hooks/createSurgery";
@@ -20,6 +33,9 @@ import Checkbox from "expo-checkbox";
 import getHospitalizations from "../hooks/getHospitalizations";
 import getPbDateString from "../hooks/getPbDateString";
 import getOtherFields, { FieldType } from "../hooks/getOtherFields";
+import MyDateTimePicker from "./MyDateTimePicker";
+import { AppContext, IContextDefaultValue } from "../context";
+import verifyDateIsValid from "../hooks/verifyDateIsValid";
 
 interface Props {
   createSurgeryModalIsOpen: boolean;
@@ -49,11 +65,18 @@ const CreateSurgeryModal = ({
   dataToCreate,
   roomsArray,
 }: Props) => {
+  const [loading, setLoading] = useState(false);
   const [namePickerIsOpen, setNamePickerIsOpen] = useState(false);
   const [name, setName] = useState<null | string>(null);
   const [hospitalizationPickerIsOpen, setHospitalizationPickerIsOpen] =
     useState(false);
   const [hospitalization, setHospitalization] = useState<null | string>(null);
+  const [dateValidity, setDateValidity] = useState<undefined | boolean>();
+  const [startDate, setStartDate] = useState({
+    time: dataToCreate?.startDate,
+    showPicker: false,
+    error: "",
+  });
   const [endDate, setEndDate] = useState({
     time: dataToCreate?.endDate,
     showPicker: false,
@@ -61,24 +84,39 @@ const CreateSurgeryModal = ({
   });
   const { surgeriesNames } = getSurgeriesNames();
   const { hospitalizations } = getHospitalizations();
-  const { handleSubmit, control, reset } = useForm();
+  const { handleSubmit, control, reset, formState } = useForm({
+    mode: "onChange",
+  });
+  const { limitHours } = useContext(AppContext) as IContextDefaultValue;
   const otherFields = getOtherFields();
 
   useEffect(() => {
     setEndDate({ ...endDate, time: dataToCreate?.endDate });
+    setStartDate({ ...startDate, time: dataToCreate?.startDate });
   }, [dataToCreate]);
 
   function close() {
     reset();
     setName(null);
+    setDateValidity(undefined);
     setHospitalization(null);
-    setHospitalizationPickerIsOpen(false);
-    setNamePickerIsOpen(false);
     setCreateSurgeryModalIsOpen(false);
   }
 
   async function onSubmit(data: ReactHookFormData) {
-    if (dataToCreate && name && hospitalization && endDate.time) {
+    if (
+      dataToCreate &&
+      name &&
+      hospitalization &&
+      verifyDateIsValid({
+        endDate: endDate.time as Date,
+        limitHours: limitHours,
+        roomId: dataToCreate?.roomId as string,
+        roomsArray: roomsArray,
+        startDate: startDate.time as Date,
+      })
+    ) {
+      setLoading(true);
       const aditionalFieldsArr = otherFields
         ?.map((field) => {
           if (`${field.name}` in data) {
@@ -89,9 +127,9 @@ const CreateSurgeryModal = ({
         })
         .filter((e) => e !== undefined && e.value !== (undefined && ""));
       const fullData = {
-        endDate: getPbDateString(endDate.time),
+        endDate: getPbDateString(endDate.time as Date),
         room: dataToCreate.roomId,
-        startDate: getPbDateString(dataToCreate.startDate),
+        startDate: getPbDateString(startDate.time as Date),
         hospitalization: hospitalization,
         name: name,
         healthInsurance: data.healthInsurance,
@@ -102,6 +140,7 @@ const CreateSurgeryModal = ({
         bed: data.bed,
       };
       await createSurgery(fullData, aditionalFieldsArr);
+      setLoading(false);
       close();
     }
   }
@@ -145,76 +184,66 @@ const CreateSurgeryModal = ({
                   };
                 })}
               />
-              <Label required>Fim</Label>
-              <Pressable
-                onPress={() => {
-                  setEndDate({ ...endDate, showPicker: true });
-                }}
-                className="border border-neutral-300 rounded-md px-2 h-10 justify-center"
-              >
-                <Text>{endDate.time?.toTimeString().slice(0, 5)}</Text>
-              </Pressable>
-              {endDate.error.length > 0 && (
-                <Text className="text-red-500">{endDate.error}</Text>
-              )}
-
-              {endDate.showPicker && (
-                <DateTimePicker
-                  minuteInterval={30}
-                  value={endDate.time as Date}
-                  mode="time"
-                  is24Hour={true}
-                  onChange={(e, selected) => {
-                    const roomIndex = roomsArray.findIndex(
-                      (room) => room.id === dataToCreate?.roomId
-                    );
-                    if (
-                      selected &&
-                      verifyIsOccupied({
-                        exists: false,
-                        endDate: selected,
-                        roomDatesArray: roomsArray[roomIndex].dates,
-                        startDate: dataToCreate?.startDate,
-                      })
-                    ) {
-                      setEndDate({
-                        ...endDate,
-                        error: "O horário já está ocupado",
-                        showPicker: false,
-                      });
-                    } else if (
-                      dataToCreate &&
-                      selected &&
-                      selected > dataToCreate?.startDate &&
-                      (selected.getHours() < 23 ||
-                        (selected.getHours() === 23 &&
-                          selected.getMinutes() === 0))
-                    ) {
-                      setEndDate({
-                        error: "",
-                        time: selected,
-                        showPicker: false,
-                      });
-                    } else if (selected && selected.getHours() >= 23) {
-                      setEndDate({
-                        ...endDate,
-                        error: "O horário de fim não pode passar das 23h",
-                        showPicker: false,
-                      });
-                    } else if (
-                      selected &&
-                      dataToCreate &&
-                      selected < dataToCreate?.startDate
-                    ) {
-                      setEndDate({
-                        ...endDate,
-                        error: "O horário de fim não pode ser antes do início",
-                        showPicker: false,
-                      });
-                    }
+              <View className="flex-row">
+                <Label addStyle="flex-1">Início</Label>
+                <Label addStyle="flex-1 ml-2">Fim</Label>
+              </View>
+              <View className="flex-row gap-x-2 h-10">
+                <Pressable
+                  onPress={() => {
+                    setStartDate({ ...startDate, showPicker: true });
                   }}
-                />
+                  className={`border ${
+                    dateValidity === false
+                      ? "border-red-500"
+                      : "border-neutral-300"
+                  } rounded-md px-2 justify-center flex-1`}
+                >
+                  <Text>{startDate.time?.toTimeString().slice(0, 5)}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setEndDate({ ...endDate, showPicker: true });
+                  }}
+                  className={`border ${
+                    dateValidity === false
+                      ? "border-red-500"
+                      : "border-neutral-300"
+                  } rounded-md px-2 justify-center flex-1`}
+                >
+                  <Text>{endDate.time?.toTimeString().slice(0, 5)}</Text>
+                </Pressable>
+              </View>
+              {dateValidity === false ? (
+                <Text className="text-red-600 mt-1">Indisponível</Text>
+              ) : (
+                dateValidity === true && (
+                  <Text className="text-green-600 mt-1">Disponível</Text>
+                )
               )}
+              <Pressable
+                className="bg-blue-400 h-8 rounded-md justify-center mt-1"
+                onPress={() => {
+                  const isValid = verifyDateIsValid({
+                    endDate: endDate.time as Date,
+                    limitHours: limitHours,
+                    roomId: dataToCreate?.roomId as string,
+                    roomsArray: roomsArray,
+                    startDate: startDate.time as Date,
+                  });
+                  setDateValidity(isValid);
+                }}
+              >
+                <Text className="text-center text-white">
+                  Verificar disponibilidade
+                </Text>
+              </Pressable>
+              <MyDateTimePicker
+                dateState={startDate}
+                setDateState={setStartDate}
+              />
+              <MyDateTimePicker dateState={endDate} setDateState={setEndDate} />
+
               <Label required>Paciente</Label>
               <CreateSurgeryInput
                 placeholder="Nome do paciente"
@@ -244,7 +273,7 @@ const CreateSurgeryModal = ({
                   };
                 })}
               />
-              <Label required>Com anestesista</Label>
+              <Label>Com anestesista</Label>
               <Controller
                 name="anesthesist"
                 control={control}
@@ -306,9 +335,20 @@ const CreateSurgeryModal = ({
             </View>
             <Pressable
               onPress={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
-              className="bg-cyan-500 py-3 items-center"
+              className={`${
+                dateValidity === false || !hospitalization || !formState.isValid
+                  ? "bg-neutral-300"
+                  : "bg-cyan-500"
+              } py-3 items-center`}
+              disabled={
+                dateValidity === false || !hospitalization || !formState.isValid
+              }
             >
-              <Text className="text-white text-base">Criar</Text>
+              {loading ? (
+                <ActivityIndicator />
+              ) : (
+                <Text className="text-white text-base">Criar</Text>
+              )}
             </Pressable>
           </ScrollView>
         </View>
